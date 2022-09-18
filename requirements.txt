@@ -1,0 +1,12 @@
+black==22.8.0
+click==8.1.3
+colorama==0.4.5
+glfw==2.5.5
+mypy-extensions==0.4.3
+numpy==1.23.3
+pathspec==0.10.1
+Pillow==9.2.0
+platformdirs==2.5.2
+PyGLM==2.5.7
+PyOpenGL==3.1.6
+tomli==2.0.1
