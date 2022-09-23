@@ -95,7 +95,7 @@ class Shader(ABC):
 
     def loadTransformationMatrix(self, matrix_transformation):
         self.location_transformationMatrix = glGetUniformLocation(
-            self.shaderProgram, "modelMatrix"
+            self.shaderProgram, "transformationMatrix"
         )
         glUniformMatrix4fv(
             self.location_transformationMatrix,

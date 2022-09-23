@@ -8,14 +8,16 @@ class Window:
     WIDTH = 480
     HEIGHT = 270
     TITLE = "OPENGL"
+    DELTA_TIME = 0
 
     def __init__(self, W, H, TITLE):
+        self.window = None
         if not glfw.init():
             return
         self.clearColor = [0.15, 0.15, 0.15, 1.0]
         self.create(W, H, TITLE)
         self._prevTime = 0
-        self._deltatime = 0
+        self.DELTA_TIME = 0
 
     def create(self, W, H, TITLE):
         Window.WIDTH = W
@@ -23,10 +25,9 @@ class Window:
         Window.TITLE = TITLE
         self.window = glfw.create_window(W, H, TITLE, None, None)
 
-        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.SAMPLES, 4)
-        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
         glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfw.window_hint(glfw.TRANSPARENT_FRAMEBUFFER, glfw.TRUE)
 
@@ -49,7 +50,7 @@ class Window:
         return self.window
 
     def get_deltatime(self):
-        return self._deltatime
+        return Window.DELTA_TIME
 
     def setup_callbacks(self):
         glfw.set_scroll_callback(self.window, input.on_scroll)
@@ -60,7 +61,7 @@ class Window:
 
     def update(self):
         currTime = glfw.get_time()
-        self._deltatime = currTime - self._prevTime
+        Window.DELTA_TIME = currTime - self._prevTime
         self._prevTime = currTime
         glfw.swap_buffers(self.window)
         glfw.poll_events()

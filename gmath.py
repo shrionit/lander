@@ -1,4 +1,5 @@
 import glm
+import numpy as np
 
 
 def createTransformationMatrix(position, rotation, size):
@@ -13,3 +14,9 @@ def createTransformationMatrix(position, rotation, size):
     transformation = glm.rotate(transformation, rotation.z, glm.vec3(0, 0, 1))
     transformation = glm.scale(transformation, size)
     return transformation
+
+
+def randomVec3(rmin=-1, rmax=1):
+    return glm.vec3(
+        np.random.uniform(rmin, rmax)
+    )

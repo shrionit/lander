@@ -3,8 +3,11 @@ from OpenGL.GL import *
 
 
 class BufferObject:
+    BOS = []
+
     def __init__(self, buffer, type, drawtype) -> None:
         self.buffer = buffer
+        BufferObject.BOS.append(self.buffer)
         self.type = type
         self.drawtype = drawtype
         self.itemCount = 0
@@ -15,26 +18,44 @@ class BufferObject:
     def unbind(self):
         glBindBuffer(self.type, 0)
 
-    def data(self, data):
+    def data(self, size=None, data=None, usage=GL_STATIC_DRAW):
         self.itemCount = len(data)
-        glBufferData(self.type, data, self.drawtype)
+        glBufferData(self.type, size=size, data=data, usage=self.drawtype)
+
+    @staticmethod
+    def cleanup():
+        glDeleteBuffers(len(BufferObject.BOS), BufferObject.BOS)
 
     def __del__(self):
-        self.unbind()
         glDeleteBuffers(1, [self.buffer])
 
 
 class VBO(BufferObject):
-    def __init__(self, data=None, draw_type=GL_STATIC_DRAW) -> None:
-        self.buffer = glGenBuffers(1)
+    def __init__(self, data=None, buffer=None, buffer_size=3, draw_type=GL_STATIC_DRAW) -> None:
+        self.bufferSize = buffer_size * 4
+        self.buffer = buffer or glGenBuffers(1)
         super().__init__(self.buffer, GL_ARRAY_BUFFER, draw_type)
         self.auto(data)
 
     def auto(self, data):
         if data is not None:
             self.bind()
-            self.data(np.array(data, dtype=np.float32))
+            self.data(data=np.array(data, dtype=np.float32))
             self.unbind()
+
+    def update(self, data):
+        self.bind()
+        glBufferData(GL_ARRAY_BUFFER, size=self.bufferSize, usage=self.drawtype)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, data=np.array(data, dtype=np.float32))
+        self.unbind()
+
+    @staticmethod
+    def empty(size, draw_type=GL_STATIC_DRAW):
+        vbo = VBO(draw_type=draw_type, buffer_size=size)
+        vbo.bind()
+        glBufferData(GL_ARRAY_BUFFER, vbo.bufferSize, usage=draw_type)
+        vbo.unbind()
+        return vbo
 
 
 class IBO(BufferObject):
@@ -46,12 +67,13 @@ class IBO(BufferObject):
     def auto(self, data):
         if data is not None:
             self.bind()
-            self.data(np.array(data, dtype=np.int32))
+            self.data(data=np.array(data, dtype=np.int32))
             self.unbind()
 
 
 class VAO:
     VAOS = []
+
     def __init__(self) -> None:
         self.buffer = glGenVertexArrays(1)
         self.hasIndices = False
@@ -59,25 +81,44 @@ class VAO:
         self.vertexCount = 0
 
     def loadBufferToAttribLocation(
-        self,
-        attrNum,
-        bufferObject,
-        ddim=3,
-        dtype=GL_FLOAT,
-        normalized=GL_FALSE,
-        stride=0,
-        pointer=None,
-        per_instance=False
+            self,
+            attrNum,
+            bufferObject,
+            ddim=3,
+            dtype=GL_FLOAT,
+            normalized=GL_FALSE,
+            stride=0,
+            pointer=None,
     ):
         self.bind()
         bufferObject.bind()
-        if attrNum == 0: self.vertexCount = bufferObject.itemCount / 3
+        if attrNum == 0: self.vertexCount = bufferObject.itemCount / ddim
         glEnableVertexAttribArray(attrNum)
         glVertexAttribPointer(attrNum, ddim, dtype, normalized, stride * 4, pointer if pointer is None else pointer * 4)
-        if per_instance:
-            glVertexAttribDivisor(attrNum, 1)
         self.unbind()
         del bufferObject
+
+    def loadInstanceBufferToAttribLocation(self, attrNum,
+                                           vbo,
+                                           ddim=3,
+                                           dtype=GL_FLOAT,
+                                           normalized=GL_FALSE,
+                                           stride=0,
+                                           offset=None):
+        self.bind()
+        vbo.bind()
+        glEnableVertexAttribArray(attrNum)
+        glVertexAttribPointer(
+            attrNum,
+            ddim,
+            dtype,
+            normalized,
+            stride * 4,
+            offset if offset is None else offset * 4
+        )
+        glVertexAttribDivisor(attrNum, 1)
+        vbo.unbind()
+        self.unbind()
 
     def loadIndices(self, bufferObject):
         self.bind()
@@ -92,3 +133,7 @@ class VAO:
 
     def unbind(self):
         glBindVertexArray(0)
+
+    @staticmethod
+    def cleanup():
+        glDeleteVertexArrays(len(VAO.VAOS), VAO.VAOS)
