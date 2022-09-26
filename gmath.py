@@ -18,5 +18,7 @@ def createTransformationMatrix(position, rotation, size):
 
 def randomVec3(rmin=-1, rmax=1):
     return glm.vec3(
+        np.random.uniform(rmin, rmax),
+        np.random.uniform(rmin, rmax),
         np.random.uniform(rmin, rmax)
     )

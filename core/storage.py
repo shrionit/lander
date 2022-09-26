@@ -1,3 +1,5 @@
+import ctypes
+
 import numpy as np
 from OpenGL.GL import *
 
@@ -31,7 +33,9 @@ class BufferObject:
 
 
 class VBO(BufferObject):
-    def __init__(self, data=None, buffer=None, buffer_size=3, draw_type=GL_STATIC_DRAW) -> None:
+    def __init__(
+        self, data=None, buffer=None, buffer_size=3, draw_type=GL_STATIC_DRAW
+    ) -> None:
         self.bufferSize = buffer_size * 4
         self.buffer = buffer or glGenBuffers(1)
         super().__init__(self.buffer, GL_ARRAY_BUFFER, draw_type)
@@ -81,30 +85,41 @@ class VAO:
         self.vertexCount = 0
 
     def loadBufferToAttribLocation(
-            self,
-            attrNum,
-            bufferObject,
-            ddim=3,
-            dtype=GL_FLOAT,
-            normalized=GL_FALSE,
-            stride=0,
-            pointer=None,
+        self,
+        attrNum,
+        bufferObject,
+        ddim=3,
+        dtype=GL_FLOAT,
+        normalized=GL_FALSE,
+        stride=0,
+        offset=0,
     ):
         self.bind()
         bufferObject.bind()
-        if attrNum == 0: self.vertexCount = bufferObject.itemCount / ddim
+        if attrNum == 0:
+            self.vertexCount = bufferObject.itemCount / ddim
         glEnableVertexAttribArray(attrNum)
-        glVertexAttribPointer(attrNum, ddim, dtype, normalized, stride * 4, pointer if pointer is None else pointer * 4)
+        glVertexAttribPointer(
+            attrNum,
+            ddim,
+            dtype,
+            normalized,
+            stride * 4,
+            ctypes.c_void_p(offset),
+        )
         self.unbind()
         del bufferObject
 
-    def loadInstanceBufferToAttribLocation(self, attrNum,
-                                           vbo,
-                                           ddim=3,
-                                           dtype=GL_FLOAT,
-                                           normalized=GL_FALSE,
-                                           stride=0,
-                                           offset=None):
+    def loadInstanceBufferToAttribLocation(
+        self,
+        attrNum,
+        vbo,
+        ddim=3,
+        dtype=GL_FLOAT,
+        normalized=GL_FALSE,
+        instanceDataLength=0,
+        offset=0,
+    ):
         self.bind()
         vbo.bind()
         glEnableVertexAttribArray(attrNum)
@@ -113,8 +128,8 @@ class VAO:
             ddim,
             dtype,
             normalized,
-            stride * 4,
-            offset if offset is None else offset * 4
+            instanceDataLength,
+            ctypes.c_void_p(offset),
         )
         glVertexAttribDivisor(attrNum, 1)
         vbo.unbind()

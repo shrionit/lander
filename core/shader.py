@@ -11,11 +11,10 @@ class Shader(ABC):
 
     DEFAULT_PATH = os.getcwd() + "\\shaders\\"
 
-    def __init__(self, frag="fragment", vert="vertex"):
-        if frag != "fragment":
-            self.modified = True
-        else:
-            self.modified = False
+    def __init__(self, name=None, frag="fragment", vert="vertex"):
+        if name is not None:
+            frag = name
+            vert = name
         self._default_frag = frag
         self._default_vert = vert
         self.shaderVertex = compileShader(

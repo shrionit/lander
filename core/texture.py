@@ -5,33 +5,40 @@ import glm, os
 
 class Texture:
 
-    DEFAULT_PATH = os.getcwd() + "\\textures\\"
+    DEFAULT_PATH = os.getcwd() + "\\assets\\textures\\"
 
-    def __init__(self, file, isimg=False):
-        self.image = Image.open(Texture.DEFAULT_PATH + file) if not isimg else file
-        self.tex = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, self.tex)
-        # texture wrapping params
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        # texture filtering params
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        self.flippedImage = self.image.transpose(Image.FLIP_TOP_BOTTOM)
-        self.img_data = self.flippedImage.convert("RGBA").tobytes()
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            self.image.width,
-            self.image.height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            self.img_data,
-        )
-        glBindTexture(GL_TEXTURE_2D, 0)
+    def __init__(self, file=None, texID=None, mipmap=True):
+        self.image = Image.open(Texture.DEFAULT_PATH + file) if file is not None else None
+        if texID is None:
+            self.tex = glGenTextures(1)
+            glBindTexture(GL_TEXTURE_2D, self.tex)
+            # texture wrapping params
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+            # texture filtering params
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            # texture mipmaps
+            self.flippedImage = self.image.transpose(Image.FLIP_TOP_BOTTOM)
+            self.img_data = self.flippedImage.convert("RGBA").tobytes()
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_RGBA,
+                self.image.width,
+                self.image.height,
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                self.img_data,
+            )
+            if mipmap:
+                glGenerateMipmap(GL_TEXTURE_2D)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.4)
+            glBindTexture(GL_TEXTURE_2D, 0)
+        else:
+            self.tex = texID
 
     def getTexID(self):
         return self.tex
@@ -40,7 +47,6 @@ class Texture:
         newimg_data = (
             newimage.transpose(Image.FLIP_TOP_BOTTOM).convert("RGBA").tobytes()
         )
-        print(newimg_data)
         glBindTexture(GL_TEXTURE_2D, self.tex)
         glTexImage2D(
             GL_TEXTURE_2D,

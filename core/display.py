@@ -49,12 +49,14 @@ class Window:
     def get_window(self):
         return self.window
 
-    def get_deltatime(self):
+    @staticmethod
+    def get_deltatime():
         return Window.DELTA_TIME
 
     def setup_callbacks(self):
         glfw.set_scroll_callback(self.window, input.on_scroll)
-        glfw.set_window_size_callback(self.window, self.on_resize)
+
+        glfw.set_framebuffer_size_callback(self.window, self.on_resize)
         glfw.set_key_callback(self.window, input.keyboard_handler)
         glfw.set_cursor_pos_callback(self.window, input.mouse_handler)
         glfw.set_mouse_button_callback(self.window, input.mouse_button_handler)
@@ -65,11 +67,12 @@ class Window:
         self._prevTime = currTime
         glfw.swap_buffers(self.window)
         glfw.poll_events()
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)  # type: ignore
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # type: ignore
 
     def on_resize(self, _, width, height):
-        Window.WIDTH = width
-        Window.HEIGHT = height
+        if height and width:
+            Window.WIDTH = width
+            Window.HEIGHT = height
         glViewport(0, 0, Window.WIDTH, Window.HEIGHT)
 
     def close(self):

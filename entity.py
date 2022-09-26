@@ -1,10 +1,9 @@
 from abc import abstractmethod
 import glm
-from OpenGL.GL import glDrawElements, glDrawArrays, glDrawArraysInstanced, glDrawElementsInstanced, GL_TRIANGLES, \
-    GL_UNSIGNED_INT
+from OpenGL.GL import glDrawElements, glDrawArrays, GL_TRIANGLES, GL_UNSIGNED_INT
 
 from core.shader import Shader
-from core.storage import VAO, VBO
+from core.storage import VAO
 from core.texture import Texture
 from gmath import createTransformationMatrix
 
@@ -15,9 +14,9 @@ class Entity:
             position: glm.vec3 = glm.vec3(0),
             rotation: glm.vec3 = glm.vec3(),
             scale: glm.vec3 = glm.vec3(1),
-            vao: VAO = None,  # type: ignore
-            texture: Texture = None,  # type: ignore
-            shader: Shader = None  # type: ignore
+            vao: VAO = None,
+            texture: Texture = None,
+            shader: Shader = None
     ) -> None:
         self.position = position
         self.rotation = rotation
@@ -39,12 +38,6 @@ class Entity:
 
     def moveTo(self, newPosition):
         self.position = newPosition
-
-    def addInstanceLocation(self, newInstanceLocation):
-        self.instanceLocations.extend(newInstanceLocation.to_list() * 4)
-        self.bind()
-        self.vao.loadBufferToAttribLocation(3, VBO(self.instanceLocations))
-        self.unbind()
 
     def setVao(self, vao):
         self.vao = vao
