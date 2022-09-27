@@ -1,6 +1,7 @@
+import glfw
 import glm
 from OpenGL.GL import glDrawElements, GL_TRIANGLES, GL_UNSIGNED_INT
-
+from core.input import is_key_pressed
 from camera import Camera
 from core.framebuffer import FrameBuffer
 from core.shader import Shader
@@ -45,9 +46,11 @@ class Scene:
         vao.loadBufferToAttribLocation(0, VBO(RECT.vertices))
         vao.loadBufferToAttribLocation(1, VBO(RECT.texCoords), ddim=2)
         vao.loadIndices(IBO(RECT.indices))
+
         self.entity = Entity(vao=vao, shader=self.shader, texture=Texture("test.jpg"))
 
     def render(self, fbo: FrameBuffer = None):
+        fbo = fbo or self.fbo
         self.shader.attach()
         self.camera.update(self.shader)
         self.entity.bind()
