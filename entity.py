@@ -2,6 +2,7 @@ from abc import abstractmethod
 import glm
 from OpenGL.GL import glDrawElements, glDrawArrays, GL_TRIANGLES, GL_UNSIGNED_INT
 
+from core.display import Window
 from core.shader import Shader
 from core.storage import VAO
 from core.texture import Texture
@@ -16,13 +17,17 @@ class Entity:
             scale: glm.vec3 = glm.vec3(1),
             vao: VAO = None,
             texture: Texture = None,
-            shader: Shader = None
+            shader: Shader = None,
+            texOffset: glm.vec2 = glm.vec2(0),
+            texMovementMult: float = 1.0
     ) -> None:
+        self.texMovementMult = texMovementMult
         self.position = position
         self.rotation = rotation
         self.scale = scale
         self.vao: VAO = vao
         self.texture = texture
+        self.texOffset = texOffset
         self.shader = shader
         self.instanceLocations = [*self.position.to_list() * 4]
 
@@ -35,6 +40,20 @@ class Entity:
         shader = shader or self.shader
         if shader is not None:
             shader.loadTransformationMatrix(self.getTransformationMatrix())
+
+    def getRightTexOffset(self):
+        ts = self.texMovementMult * Window.get_deltatime()
+        self.texOffset += glm.vec2(ts)
+        if self.texOffset.x > 1.0: self.texOffset.x = 0.0
+        if self.texOffset.y > 1.0: self.texOffset.y = 0.0
+        return self.texOffset
+
+    def getLeftTexOffset(self):
+        ts = self.texMovementMult * Window.get_deltatime()
+        self.texOffset -= glm.vec2(ts)
+        if self.texOffset.x > 1.0: self.texOffset.x = 0.0
+        if self.texOffset.y > 1.0: self.texOffset.y = 0.0
+        return self.texOffset
 
     def moveTo(self, newPosition):
         self.position = newPosition

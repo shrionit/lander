@@ -4,11 +4,11 @@ import glm, os
 
 
 class Texture:
-
     DEFAULT_PATH = os.getcwd() + "\\assets\\textures\\"
 
     def __init__(self, file=None, texID=None, mipmap=True):
         self.image = Image.open(Texture.DEFAULT_PATH + file) if file is not None else None
+        self.dim = (self.image.width, self.image.height)
         if texID is None:
             self.tex = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self.tex)
@@ -19,8 +19,8 @@ class Texture:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             # texture mipmaps
-            self.flippedImage = self.image.transpose(Image.FLIP_TOP_BOTTOM)
-            self.img_data = self.flippedImage.convert("RGBA").tobytes()
+            # self.flippedImage = self.image.transpose(Image.FLIP_TOP_BOTTOM)
+            self.img_data = self.image.convert("RGBA").tobytes()
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
@@ -64,8 +64,22 @@ class Texture:
         glActiveTexture(texUnit)
         glBindTexture(GL_TEXTURE_2D, self.tex)
 
+    @staticmethod
+    def bindTexture(texID):
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, texID)
+
     def unbind(self):
         glBindTexture(GL_TEXTURE_2D, 0)
+
+    @staticmethod
+    def createCleanTexture(width, height):
+        texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        return texture
 
 
 class Material:
@@ -77,14 +91,14 @@ class Material:
 
 class Metal(Material):
     def __init__(
-        self,
-        name="_",
-        color=glm.vec4(1.0, 1.0, 1.0, 1.0),
-        sharpness=1.0,
-        highlight_color=glm.vec4(1.0, 1.0, 1.0, 1.0),
-        intensity=1.0,
-        fresnel=1.0,
-        mtype=1,
+            self,
+            name="_",
+            color=glm.vec4(1.0, 1.0, 1.0, 1.0),
+            sharpness=1.0,
+            highlight_color=glm.vec4(1.0, 1.0, 1.0, 1.0),
+            intensity=1.0,
+            fresnel=1.0,
+            mtype=1,
     ):
         super().__init__(name, color, highlight_color)
         self.sharpness = sharpness
@@ -95,15 +109,15 @@ class Metal(Material):
 
 class Glass(Material):
     def __init__(
-        self,
-        name="_",
-        color=glm.vec4(1.0, 1.0, 1.0, 1.0),
-        IR=1.0,
-        highlight_color=glm.vec4(1.0, 1.0, 1.0, 1.0),
-        intensity=1.0,
-        fresnel=1.0,
-        sharpness=1.0,
-        transparency=1.0,
+            self,
+            name="_",
+            color=glm.vec4(1.0, 1.0, 1.0, 1.0),
+            IR=1.0,
+            highlight_color=glm.vec4(1.0, 1.0, 1.0, 1.0),
+            intensity=1.0,
+            fresnel=1.0,
+            sharpness=1.0,
+            transparency=1.0,
     ):
         super().__init__(name, color, highlight_color)
         self.IR = IR
@@ -115,13 +129,13 @@ class Glass(Material):
 
 class Plastic(Material):
     def __init__(
-        self,
-        name="_",
-        color=glm.vec4(1.0, 1.0, 1.0, 1.0),
-        highlight_color=glm.vec4(1.0, 1.0, 1.0, 1.0),
-        intensity=1.0,
-        fresnel=1.0,
-        sharpness=1.0,
+            self,
+            name="_",
+            color=glm.vec4(1.0, 1.0, 1.0, 1.0),
+            highlight_color=glm.vec4(1.0, 1.0, 1.0, 1.0),
+            intensity=1.0,
+            fresnel=1.0,
+            sharpness=1.0,
     ):
         super().__init__(name, color, highlight_color)
         self.sharpness = sharpness

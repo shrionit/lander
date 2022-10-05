@@ -142,9 +142,6 @@ class ParticleSystem(Renderer):
         )
         self.vao.loadIndices(IBO(RECT.indices))
         self.vao.unbind()
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glDepthMask(GL_FALSE)
 
     def getParticlesTransformations(self):
         out = []
@@ -159,12 +156,15 @@ class ParticleSystem(Renderer):
         self.vbo.update(self.getParticlesTransformations())
 
     def start(self):
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glDepthMask(GL_FALSE)
         self.shader.attach()
         self.texture.bind()
         self.vao.bind()
 
     def stop(self):
+        glDisable(GL_BLEND)
         glDepthMask(True)
         self.vao.unbind()
         self.texture.unbind()

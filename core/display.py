@@ -10,11 +10,11 @@ class Window:
     TITLE = "OPENGL"
     DELTA_TIME = 0
 
-    def __init__(self, W, H, TITLE):
+    def __init__(self, W, H, TITLE, clearColor=[0.15, 0.15, 0.15, 1.0]):
         self.window = None
         if not glfw.init():
             return
-        self.clearColor = [0.15, 0.15, 0.15, 1.0]
+        self.clearColor = clearColor
         self.create(W, H, TITLE)
         self._prevTime = 0
         self.DELTA_TIME = 0
@@ -37,8 +37,6 @@ class Window:
         glfw.make_context_current(self.window)
         glViewport(0, 0, Window.WIDTH, Window.HEIGHT)
         glClearColor(*self.clearColor)
-        glEnable(GL_DEPTH_TEST)
-        glEnable(GL_MULTISAMPLE)
         # Callbacks
         self.setup_callbacks()
         return self.window
@@ -61,13 +59,13 @@ class Window:
         glfw.set_cursor_pos_callback(self.window, input.mouse_handler)
         glfw.set_mouse_button_callback(self.window, input.mouse_button_handler)
 
-    def update(self):
+    def update(self, clears=GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT):
         currTime = glfw.get_time()
         Window.DELTA_TIME = currTime - self._prevTime
         self._prevTime = currTime
         glfw.swap_buffers(self.window)
         glfw.poll_events()
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # type: ignore
+        glClear(clears)
 
     def on_resize(self, _, width, height):
         if height and width:

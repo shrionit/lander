@@ -36,3 +36,8 @@ class Dict(dict):
 
 def getTime():
     return np.float32(glfw.get_time())
+
+
+def getHeightWithRatio(w, a, b):
+    """ Returns height for given width 'w' with ratio a:b """
+    return b * w // a

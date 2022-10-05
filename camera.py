@@ -27,17 +27,17 @@ Camera_Movement.RIGHT = KEY_D
 Camera_Movement.UP = KEY_LEFT_SHIFT
 Camera_Movement.DOWN = KEY_LEFT_CONTROL
 
-
 # Default camera values
 YAW = -90.0
 PITCH = 0.0
-SPEED = 2.5
+SPEED = 20.5
 SENSITIVITY = 0.1
 ZOOM = 45.0
 
 
-# An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera:
+    """An abstract camera class that processes input and calculates the corresponding Euler Angles,
+    Vectors and Matrices for use in OpenGL """
     def __init__(self, window, *args, **kwargs):
         if len(args) == 4 and len(kwargs) == 0:
             pos, up, yaw, pitch = args
@@ -71,9 +71,9 @@ class Camera:
         else:
             raise TypeError("Invalid argument count for Camera()")
 
-        self.Front = glm.vec3(0.0, 0.0, -1.0)
-        self.Up = glm.vec3()
-        self.Right = glm.vec3()
+        self.Front = glm.vec3(0, 0, 1)
+        self.Up = glm.vec3(0, 1, 0)
+        self.Right = glm.vec3(1, 1, 0)
         self.MovementSpeed = SPEED
         self.MouseSensitivity = SENSITIVITY
         self.Zoom = ZOOM
@@ -86,7 +86,10 @@ class Camera:
         return glm.lookAt(self.Position, self.Position + self.Front, self.Up)
 
     def GetProjectionMatrix(self) -> glm.mat4:
-        return glm.perspective(glm.radians(self.Zoom), self.window.WIDTH / self.window.HEIGHT, 0.1, 100.0)
+        # perspective = glm.perspective(glm.radians(self.Zoom), self.window.WIDTH / self.window.HEIGHT, 0.1, 100.0)
+        ortho = glm.ortho(0, 64 * 30, 64 * 20, 0, 0.0, 1000)
+        return ortho
+
 
     def update(self, shader):
         shader.attach()
@@ -99,7 +102,7 @@ class Camera:
 
     # processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     def ProcessKeyboard(self) -> None:
-        velocity = self.MovementSpeed * self.window.get_deltatime()
+        velocity = self.MovementSpeed * self.window.get_deltatime() * 0.2
         if is_key_pressed(Camera_Movement.FORWARD):
             self.Position += self.Front * velocity
         if is_key_pressed(Camera_Movement.BACKWARD):
@@ -115,16 +118,16 @@ class Camera:
 
     # processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     def ProcessMouseMovement(
-        self, xoffset: float, yoffset: float, constrainPitch: bool = True, on_key=None
+            self, xoffset: float, yoffset: float, constrainPitch: bool = True, on_key=None
     ) -> None:
         if on_key is not None and not is_mouse_pressed(MOUSE_BUTTON_MIDDLE): return
-        
+
         xoffset *= self.MouseSensitivity
         yoffset *= self.MouseSensitivity
 
         self.Yaw += xoffset
         self.Pitch += -yoffset
-        
+
         # make sure that when pitch is out of bounds, screen doesn't get flipped
         if constrainPitch:
             if self.Pitch > 89.0:

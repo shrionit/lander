@@ -1,87 +1,53 @@
 from OpenGL.GL import *
-from PIL import Image
-from .utils import Dict
+from OpenGL.GL.framebufferobjects import glBindFramebuffer
+from core.logger import createLogger
+from core.display import Window
+from core.texture import Texture
 
+logger = createLogger("FBO")
 
-class FrameBuffer:
-    def __init__(self, width, height, **kwargs):
-        self._framebuffer = kwargs.get("framebuffer") or glGenFramebuffers(1)
-        self._renderbuffer = kwargs.get("renderbuffer") or glGenRenderbuffers(1)
-        self._fb_attachment = kwargs.get("texture") or glGenTextures(1)
-        self.window_width, self.window_height = width, height
-        self._output = self._compile()
+class Framebuffer:
+    FBOS = []
+    RBOS = []
 
-    def getFB(self):
-        return self._output
+    def __init__(self, width=Window.WIDTH, height=Window.HEIGHT, multiSample=False, texID=None):
+        self.textureID = None
+        self.rbo = None
+        self.multiSample = multiSample
+        self.fbo = None
+        self.width = width
+        self.height = height
+        self.initFBO(texID)
 
-    def _compile(self):
-        # binding frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, self._framebuffer)
-        # binding attachment texture
-        glBindTexture(GL_TEXTURE_2D, self._fb_attachment)
-        # binding render buffer (a direct rendered frame storage without conversion to img format)
-        glBindRenderbuffer(GL_RENDERBUFFER, self._renderbuffer)
-
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGB,
-            self.window_width,
-            self.window_height,
-            0,
-            GL_RGB,
-            GL_UNSIGNED_BYTE,
-            None,
-        )
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        # glTexImage2D(
-        #     GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, self.window_width, self.window_height, 0,
-        #     GL_DEPTH_STENCIL, GL_UNSIGNED_INT, None
-        # )
-        glBindTexture(GL_TEXTURE_2D, 0)
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self._fb_attachment, 0
-        )
-
-        glRenderbufferStorage(
-            GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.window_width, self.window_height
-        )
-
-        glBindRenderbuffer(GL_RENDERBUFFER, 0)
-
-        glFramebufferRenderbuffer(
-            GL_FRAMEBUFFER,
-            GL_DEPTH_STENCIL_ATTACHMENT,
-            GL_RENDERBUFFER,
-            self._renderbuffer,
-        )
-
+    def initFBO(self, texID=None):
+        self.fbo = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+        self.textureID = texID or Texture.createCleanTexture(self.width, self.height)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.textureID, 0)
+        self.rbo = self.initRBO()
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.rbo)
         if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-            print("ERROR: Frame Buffer is Not complete")
-
+            logger.error("Frame buffer is not complete!")
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        return Dict(
-            {
-                "textureId": self._fb_attachment,
-                "framebufferId": self._framebuffer,
-                "renderbufferId": self._renderbuffer,
-            }
-        )
+        Framebuffer.FBOS.append(self.fbo)
 
-    def saveTextureToFile(self, filepath: str, format="PNG"):
-        self.attach()
-        imgdata = glReadPixels(
-            0, 0, self.window_width, self.window_height, GL_RGBA, GL_UNSIGNED_BYTE
-        )
-        img = Image.frombytes("RGBA", (self.window_width, self.window_height), imgdata)
-        img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-        filepath += f".{format.lower()}" if filepath.rfind(".") == -1 else ""
-        img.save(filepath, format)
-        self.detach()
+    def initRBO(self, attachment=GL_DEPTH24_STENCIL8):
+        """Creating and returning a render buffer which is similar to a texture buffer
+        but the data is in raw bytes and write only and very fast"""
+        rbo = glGenRenderbuffers(1)
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo)
+        glRenderbufferStorage(GL_RENDERBUFFER, attachment, self.width, self.height)
+        Framebuffer.RBOS.append(rbo)
+        return rbo
 
-    def attach(self):
-        glBindFramebuffer(GL_FRAMEBUFFER, self._framebuffer)
+    def bind(self):
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+        glViewport(0, 0, self.width, self.height)
 
-    def detach(self):
+    def unbind(self):
+        glViewport(0, 0, Window.WIDTH, Window.HEIGHT)
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+    @staticmethod
+    def cleanUP():
+        glDeleteFramebuffers(len(Framebuffer.FBOS), Framebuffer.FBOS)
+        glDeleteRenderbuffers(len(Framebuffer.RBOS), Framebuffer.RBOS)
