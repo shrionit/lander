@@ -1,4 +1,5 @@
 import glfw
+import json, os
 import numpy as np
 
 
@@ -41,3 +42,24 @@ def getTime():
 def getHeightWithRatio(w, a, b):
     """ Returns height for given width 'w' with ratio a:b """
     return b * w // a
+
+
+def loadJSON(filepath):
+    path = os.getcwd() + "\\assets\\" + filepath
+    file = open(path)
+    data = json.load(file)
+    file.close()
+    return data
+
+
+def getTexCoordsFromIndex(w, h, tileWidth, tileHeight, index):
+    n_tile = w // tileWidth
+    y = index // n_tile
+    x = index % n_tile
+    xoff = tileWidth / w
+    yoff = tileHeight / h
+    left = xoff * x
+    bottom = yoff * y
+    right = left + xoff
+    top = bottom + yoff
+    return left, bottom, right, bottom, right, top, left, top
