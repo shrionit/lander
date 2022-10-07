@@ -6,12 +6,31 @@ mousebuttons = [False] * 12
 keyboard_events = [lambda: None] * 349
 mousebutton_events = [lambda: None] * 12
 
+KEYS = Dict()
+KEYS.UP = g.KEY_UP
+KEYS.DOWN = g.KEY_DOWN
+KEYS.LEFT = g.KEY_LEFT
+KEYS.RIGHT = g.KEY_RIGHT
+KEYS.W = g.KEY_W
+KEYS.A = g.KEY_A
+KEYS.S = g.KEY_S
+KEYS.D = g.KEY_D
+KEYS.LEFT_CTRL = g.KEY_LEFT_CONTROL
+KEYS.RIGHT_CTRL = g.KEY_RIGHT_CONTROL
+KEYS.LEFT_SHIFT = g.KEY_LEFT_SHIFT
+KEYS.RIGHT_SHIFT = g.KEY_RIGHT_SHIFT
+KEYS.LEFT_ALT = g.KEY_LEFT_ALT
+KEYS.RIGHT_ALT = g.KEY_RIGHT_ALT
+KEYS.SPACE = g.KEY_SPACE
+
+
 def clear_mouse():
     mouse.dx = 0
     mouse.dy = 0
     mouse.scrollY = 0
 
 is_key_pressed = lambda key: keyboard[key]
+is_key_released = lambda key: not keyboard[key]
 is_mouse_pressed = lambda key: mousebuttons[key]
 
 def mouse_handler(_, x, y):

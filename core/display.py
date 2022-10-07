@@ -10,7 +10,7 @@ class Window:
     TITLE = "OPENGL"
     DELTA_TIME = 0
 
-    def __init__(self, W, H, TITLE, clearColor=[0.15, 0.15, 0.15, 1.0]):
+    def __init__(self, W, H, TITLE, clearColor=(0.15, 0.15, 0.15, 1.0)):
         self.window = None
         if not glfw.init():
             return

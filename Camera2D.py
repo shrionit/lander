@@ -79,7 +79,7 @@ class Camera2D:
         shader.attach()
         shader.loadProjectionMatrix(self.GetProjectionMatrix())
         shader.loadViewMatrix(self.GetViewMatrix())
-        self.processKeyboard()
+        # self.processKeyboard()
 
     def processKeyboard(self):
         speed = self.MovementSpeed * Window.get_deltatime()

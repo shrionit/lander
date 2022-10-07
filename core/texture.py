@@ -4,10 +4,14 @@ import glm, os
 
 
 class Texture:
-    DEFAULT_PATH = os.getcwd() + "\\assets\\textures\\"
+    DEFAULT_PATH = os.getcwd() + "\\assets\\"
 
-    def __init__(self, file=None, texID=None, mipmap=True):
-        self.image = Image.open(Texture.DEFAULT_PATH + file) if file is not None else None
+    def __init__(self, file=None, assets: str = None, texID=None, mipmap=True):
+        self.image = None
+        if assets:
+            self.image = Image.open(Texture.DEFAULT_PATH + assets)
+        if file:
+            self.image = Image.open(Texture.DEFAULT_PATH + "textures\\" + file)
         self.dim = (self.image.width, self.image.height)
         if texID is None:
             self.tex = glGenTextures(1)
