@@ -4,6 +4,8 @@ from Camera2D import Camera2D
 from camera import Camera
 from core.display import Window
 from core.texture import Texture
+from entity import Entity
+from map import Map
 from scene import Scene
 from sprite import SpriteRenderer, Sprite
 
@@ -17,24 +19,19 @@ step = 0.001
 def main():
     # Creating Window
     window = Window(WIDTH, HEIGHT, TITLE)
-    # scene = Scene(window)
-    # Creating shaders with basic.frag and basic.vert, no need to specify extension
-    # scene.setup()
-    camera = Camera2D(position=glm.vec3(0, 0, 5.1))
+    camera = Camera2D(position=glm.vec3(0, 0, -5))
     spriteRenderer = SpriteRenderer()
     tex = Texture("test.jpg")
-    sprites = []
-    # for y in range(0, window.HEIGHT, 64):
-    #     for x in range(0, window.WIDTH, 64):
-    #         sprites.append(Sprite(pos=glm.vec2(x, y), size=glm.vec2(64), tex=tex))
-    sprites.append(Sprite(pos=glm.vec3(0, 0, 5), size=glm.vec2(64), tex=tex))
+    tile_map = Map(texture=Texture(assets="maps\\Tiles.png"), tileWidth=8, tileHeight=8)
+    sprites = [Entity(position=glm.vec3(1, 1, 5), texture=tex)]
     spriteRenderer.process(sprites)
     while window.isNotClosed():
-        # scene.renderScene()
         camera.update(spriteRenderer.shader)
+        camera.update(tile_map.shader)
+        tile_map.render()
         spriteRenderer.renderSprites()
         window.update()
-    # scene.cleanup()
+    tile_map.cleanup()
     window.close()  # terminating the glfw window
 
 

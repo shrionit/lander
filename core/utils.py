@@ -52,12 +52,12 @@ def loadJSON(filepath):
     return data
 
 
-def getTexCoordsFromIndex(w, h, tileWidth, tileHeight, index):
-    n_tile = w // tileWidth
+def getTexCoordsFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index):
+    n_tile = imageWidth // tileWidth
     y = index // n_tile
     x = index % n_tile
-    xoff = tileWidth / w
-    yoff = tileHeight / h
+    xoff = tileWidth / imageWidth
+    yoff = tileHeight / imageHeight
     left = xoff * x
     bottom = yoff * y
     right = left + xoff
