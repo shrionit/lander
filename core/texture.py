@@ -2,17 +2,22 @@ from OpenGL.GL import *
 from PIL import Image
 import glm, os
 
+from core.display import Window
+
 
 class Texture:
     DEFAULT_PATH = os.getcwd() + "\\assets\\"
 
-    def __init__(self, file=None, assets: str = None, texID=None, repeat=GL_REPEAT, filter=GL_LINEAR, mipmap=False):
+    def __init__(self, file=None, textures: str = None, assets: str = None, texID=None, dim=(Window.WIDTH, Window.HEIGHT), repeat=GL_REPEAT, filter=GL_LINEAR, mipmap=False):
         self.image = None
         if assets:
             self.image = Image.open(Texture.DEFAULT_PATH + assets)
+        if textures:
+            self.image = Image.open(Texture.DEFAULT_PATH + "textures\\" + textures)
         if file:
-            self.image = Image.open(Texture.DEFAULT_PATH + "textures\\" + file)
-        self.dim = (self.image.width, self.image.height)
+            self.image = Image.open(file)
+        if self.image:
+            self.dim = (self.image.width, self.image.height)
         if texID is None:
             self.tex = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self.tex)
@@ -43,6 +48,7 @@ class Texture:
             glBindTexture(GL_TEXTURE_2D, 0)
         else:
             self.tex = texID
+            self.dim = dim
 
     def getTexID(self):
         return self.tex

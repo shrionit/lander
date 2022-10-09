@@ -18,22 +18,21 @@ WORLD_BOUNDS.BOTTOM = 64 * 20
 
 class Map:
 
-    def __init__(self, texture: Texture, tileWidth: int = 64, tileHeight: int = 64):
+    def __init__(self, texture: Texture, level = None, shader: Shader = None, tileWidth: int = 64, tileHeight: int = 64):
         self.texture = texture
         self.tileWidth = tileWidth
         self.tileHeight = tileHeight
-        self.shader = Shader(frag="mapShader", vert="mapShader")
+        self.shader = shader or Shader(frag="mapShader", vert="mapShader")
         self.nTileWidth = tileWidth/self.texture.dim[0]
         self.nTileHeight = tileHeight/self.texture.dim[1]
-        self.tileSize = glm.vec2(tileWidth/texture.dim[0], tileHeight/texture.dim[1]).to_list()
-        print(self.tileSize)
+        self.tileSize = glm.vec2(self.nTileWidth, self.nTileHeight).to_list()
         self.shader.attach()
         self.shader.setUniformVec2("tileSize", self.tileSize)
         self.shader.detach()
         self.tiles = []
         self.tilesTexOffsets = []
         self.tileTransforms = []
-        self.generateMapSprites()
+        self.generateMapSprites(level)
         self.vao = VAO()
         self.vboTransforms = VBO(
             buffer_size=30 * 20 * 16
@@ -72,24 +71,24 @@ class Map:
             out.extend([tile.getTexCoords()])
         return np.array(out, np.float32)
 
-    def generateMapSprites(self):
-        level = loadJSON("levels\\level0.json")
+    def generateMapSprites(self, level):
         self.tiles = []
         self.tilesTexOffsets = []
         self.tileTransforms = []
         for y in range(WORLD_BOUNDS.BOTTOM // 64):
             for x in range(WORLD_BOUNDS.RIGHT // 64):
                 i = x + y * WORLD_BOUNDS.RIGHT // 64
-                sprite = Sprite(
+                if level[i] > 0:
+                    sprite = Sprite(
                         pos=glm.vec3(x * 64, y * 64, 5.0),
                         size=glm.vec2(64),
                         texMapSize=self.texture.dim,
                         tileSize=(self.tileWidth, self.tileHeight),
-                        tileIndex=level[i]-1 if level[i] > 0 else 0
-                )
-                self.tilesTexOffsets.extend(sprite.getTexOffset())
-                self.tileTransforms.extend(sprite.getTransformationMatrix())
-                self.tiles.append(sprite)
+                        tileIndex=level[i] - 1
+                    )
+                    self.tilesTexOffsets.extend(sprite.getTexOffset())
+                    self.tileTransforms.extend(sprite.getTransformationMatrix())
+                    self.tiles.append(sprite)
         return self.tiles
 
     def start(self):

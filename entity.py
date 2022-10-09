@@ -1,16 +1,10 @@
-from abc import abstractmethod
-from logging import getLogger
-
 import glm
-from OpenGL.GL import glDrawElements, glDrawArrays, GL_TRIANGLES, GL_UNSIGNED_INT
 
 from core.display import Window
 from core.input import KEYS, is_key_pressed
 from core.shader import Shader
-from core.storage import VAO
 from core.texture import Texture
-from gmath import createTransformationMatrix
-from map import WORLD_BOUNDS
+from level.map import WORLD_BOUNDS
 from sprite import Sprite
 
 
