@@ -23,21 +23,27 @@ class Map:
         self.tileWidth = tileWidth
         self.tileHeight = tileHeight
         self.shader = Shader(frag="mapShader", vert="mapShader")
+        self.nTileWidth = tileWidth/self.texture.dim[0]
+        self.nTileHeight = tileHeight/self.texture.dim[1]
+        self.tileSize = glm.vec2(tileWidth/texture.dim[0], tileHeight/texture.dim[1]).to_list()
+        print(self.tileSize)
+        self.shader.attach()
+        self.shader.setUniformVec2("tileSize", self.tileSize)
+        self.shader.detach()
         self.tiles = []
+        self.tilesTexOffsets = []
+        self.tileTransforms = []
         self.generateMapSprites()
         self.vao = VAO()
         self.vboTransforms = VBO(
             buffer_size=30 * 20 * 16
         )
-        self.vboTexCoords = VBO(
-            buffer_size=30 * 20 * 16
-        )
-        self.vboTransforms.update(self.getTilesTransformations())
-        self.vboTexCoords.update(self.getTileTexCoords())
+        self.vboTransforms.update(self.tileTransforms)
         self.vao.bind()
         self.vao.loadBufferToAttribLocation(0, VBO(RECT.CENTERED.vertices))
+        # self.vao.loadBufferToAttribLocation(1, VBO(RECT.CENTERED.texCoords), ddim=2)
         self.vao.loadInstanceBufferToAttribLocation(
-            1, self.vboTexCoords, ddim=2, instanceDataLength=8*4, offset=0
+            1, VBO(self.tilesTexOffsets), ddim=2, instanceDataLength=2 * 4, offset=0
         )
         self.vao.loadInstanceBufferToAttribLocation(
             2, self.vboTransforms, ddim=4, instanceDataLength=16 * 4, offset=0
@@ -51,7 +57,7 @@ class Map:
         self.vao.loadInstanceBufferToAttribLocation(
             5, self.vboTransforms, ddim=4, instanceDataLength=16 * 4, offset=48
         )
-        self.vao.loadIndices(IBO(RECT.indices))
+        self.vao.loadIndices(IBO(RECT.CENTERED.indices))
         self.vao.unbind()
 
     def getTilesTransformations(self):
@@ -63,24 +69,27 @@ class Map:
     def getTileTexCoords(self):
         out = []
         for tile in self.tiles:
-            out.extend(tile.getTexCoords())
+            out.extend([tile.getTexCoords()])
         return np.array(out, np.float32)
 
     def generateMapSprites(self):
         level = loadJSON("levels\\level0.json")
         self.tiles = []
+        self.tilesTexOffsets = []
+        self.tileTransforms = []
         for y in range(WORLD_BOUNDS.BOTTOM // 64):
             for x in range(WORLD_BOUNDS.RIGHT // 64):
                 i = x + y * WORLD_BOUNDS.RIGHT // 64
-                self.tiles.append(
-                    Sprite(
+                sprite = Sprite(
                         pos=glm.vec3(x * 64, y * 64, 5.0),
                         size=glm.vec2(64),
                         texMapSize=self.texture.dim,
                         tileSize=(self.tileWidth, self.tileHeight),
-                        tileIndex=level[i]
-                    )
+                        tileIndex=level[i]-1 if level[i] > 0 else 0
                 )
+                self.tilesTexOffsets.extend(sprite.getTexOffset())
+                self.tileTransforms.extend(sprite.getTransformationMatrix())
+                self.tiles.append(sprite)
         return self.tiles
 
     def start(self):
@@ -111,4 +120,4 @@ class Map:
 
     def cleanup(self):
         del self.vboTransforms
-        del self.vboTexCoords
+        # del self.vboTexCoords

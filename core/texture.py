@@ -6,7 +6,7 @@ import glm, os
 class Texture:
     DEFAULT_PATH = os.getcwd() + "\\assets\\"
 
-    def __init__(self, file=None, assets: str = None, texID=None, mipmap=True):
+    def __init__(self, file=None, assets: str = None, texID=None, repeat=GL_REPEAT, filter=GL_LINEAR, mipmap=False):
         self.image = None
         if assets:
             self.image = Image.open(Texture.DEFAULT_PATH + assets)
@@ -17,11 +17,11 @@ class Texture:
             self.tex = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self.tex)
             # texture wrapping params
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, repeat)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, repeat)
             # texture filtering params
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter)
             # texture mipmaps
             # self.flippedImage = self.image.transpose(Image.FLIP_TOP_BOTTOM)
             self.img_data = self.image.convert("RGBA").tobytes()
@@ -82,7 +82,7 @@ class Texture:
         glBindTexture(GL_TEXTURE_2D, texture)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         return texture
 
 

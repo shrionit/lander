@@ -64,9 +64,6 @@ class Shader(ABC):
         self.uniformLocations.append(loc)
         return loc
 
-    def kindOfDataStoredInPosition(self, position, NumberOfPoints):
-        glVertexAttribPointer(position, NumberOfPoints, GL_FLOAT, GL_FALSE, 0, None)
-
     def setUniform1(self, location, value, dtype="f"):
         loc = glGetUniformLocation(self.shaderProgram, location)
         eval(f"glUniform1{dtype}")(loc, value)

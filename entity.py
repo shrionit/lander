@@ -22,13 +22,14 @@ class Entity(Sprite):
             size: glm.vec2 = glm.vec2(64),
             texture: Texture = None,
             shader: Shader = None,
-            texOffset: glm.vec2 = glm.vec2(0),
-            texMovementMult: float = 1.0,
             elapsedFrame: int = 0,
             frameBuffer: int = 2,
             frameSize: int = 64,
             frameCount: int = 1,
             static: bool = False,
+            texMapSize=(Window.WIDTH, Window.HEIGHT),
+            tileSize=(64, 64),
+            tileIndex=0
     ) -> None:
         super().__init__(
             pos=position,
@@ -40,15 +41,16 @@ class Entity(Sprite):
             frameBuffer=frameBuffer,
             frameSize=frameSize,
             frameCount=frameCount,
+            texMapSize=texMapSize,
+            tileSize=tileSize,
+            tileIndex=tileIndex
         )
-        self.moveSpeed = 1.0
-        self.texMovementMult = texMovementMult
-        self.texOffset = texOffset
+        self.moveSpeed = Window.WIDTH//2
         self.static = False
         self.jumpForce = -3
         self.velocity = glm.vec3(0, 0, 0)
-        self.gravity = 0.98
-        self.acceleration = glm.vec3(0, self.gravity / 100, 0)
+        self.gravity = 9.8
+        self.acceleration = glm.vec3(0, self.gravity, 0)
 
     def applyPhysics(self):
         self.pos += self.velocity
@@ -58,7 +60,7 @@ class Entity(Sprite):
         if bottomBound:
             if not topBound:
                 self.velocity.y = 0
-            self.velocity += self.acceleration
+            self.velocity += self.acceleration * Window.get_deltatime()
         else:
             self.velocity.y = 0
 
@@ -66,9 +68,9 @@ class Entity(Sprite):
         if is_key_pressed(KEYS.SPACE) and self.velocity.y == 0:
             self.velocity.y = self.jumpForce
         if is_key_pressed(KEYS.A) and self.bounds.left - self.velocity.x > WORLD_BOUNDS.LEFT:
-            self.velocity.x = -self.moveSpeed
+            self.velocity.x = -self.moveSpeed * Window.get_deltatime()
         elif is_key_pressed(KEYS.D) and self.bounds.right + self.velocity.x < WORLD_BOUNDS.RIGHT:
-            self.velocity.x = self.moveSpeed
+            self.velocity.x = self.moveSpeed * Window.get_deltatime()
         else:
             self.velocity.x = 0
 

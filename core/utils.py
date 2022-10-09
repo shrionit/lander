@@ -52,14 +52,32 @@ def loadJSON(filepath):
     return data
 
 
+def getTexOffsetFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index):
+    n_tile = imageWidth // tileWidth
+    y = index // n_tile
+    x = index % n_tile
+    x *= tileWidth
+    y *= tileHeight
+    return x / imageWidth, y / imageHeight
+
+
 def getTexCoordsFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index):
     n_tile = imageWidth // tileWidth
     y = index // n_tile
     x = index % n_tile
     xoff = tileWidth / imageWidth
     yoff = tileHeight / imageHeight
-    left = xoff * x
-    bottom = yoff * y
-    right = left + xoff
-    top = bottom + yoff
-    return left, bottom, right, bottom, right, top, left, top
+    left = (x * tileWidth) / imageWidth
+    bottom = (y * tileHeight) / imageHeight
+    right = ((x + 1) * tileWidth) / imageWidth
+    top = ((y + 1) * tileHeight) / imageHeight
+    # left = xoff * x
+    # bottom = yoff * y
+    # right = left + xoff
+    # top = bottom + yoff
+    return [
+        left, bottom,
+        right, bottom,
+        right, top,
+        left, top
+    ]

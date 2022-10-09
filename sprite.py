@@ -8,7 +8,7 @@ from core.shader import Shader
 from core.shapes import RECT
 from core.storage import VAO, VBO, IBO
 from core.texture import Texture
-from core.utils import Dict, getTexCoordsFromIndex
+from core.utils import Dict, getTexCoordsFromIndex, getTexOffsetFromIndex
 from gmath import createTransformationMatrix
 
 
@@ -67,7 +67,10 @@ class Sprite:
         ]
         
         self.vao = VAO()
-        self.vao.loadBufferToAttribLocation(0, VBO(data), ddim=4)
+        self.vao.loadBufferToAttribLocation(0, VBO(RECT.CENTERED.vertices), ddim=3)
+        self.vao.loadBufferToAttribLocation(1, VBO(self.getTexCoords()), ddim=2)
+        self.vao.loadIndices(IBO(RECT.CENTERED.indices))
+        self.vao.unbind()
 
     def calculateBounds(self, centered=False):
         if centered:
@@ -91,6 +94,13 @@ class Sprite:
             self.tileIndex
         )
 
+    def getTexOffset(self):
+        return getTexOffsetFromIndex(
+            *self.texMapSize,
+            *self.tileSize,
+            self.tileIndex
+        )
+
     def update(self, shader: Shader = None):
         shader = shader or self.shader
         if shader is not None:
@@ -104,14 +114,24 @@ class Sprite:
     def afterRender(self):
         pass
 
+    def start(self):
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glDepthMask(GL_FALSE)
+
+    def stop(self):
+        glDisable(GL_BLEND)
+        glDepthMask(True)
+
     def render(self):
         self.beforeRender()
+        self.start()
         if self.tex: self.tex.bind()
         self.vao.bind()
-        # glDrawElements(GL_TRIANGLES, self.vao.indicesCount, GL_UNSIGNED_INT, None)
-        glDrawArrays(GL_TRIANGLES, 0, 6)
+        glDrawElements(GL_TRIANGLES, self.vao.indicesCount, GL_UNSIGNED_INT, None)
         self.vao.unbind()
         if self.tex: self.tex.unbind()
+        self.stop()
         self.afterRender()
 
 

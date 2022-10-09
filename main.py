@@ -1,4 +1,5 @@
 import glm
+from OpenGL.raw.GL.VERSION.GL_1_0 import GL_NEAREST
 
 from Camera2D import Camera2D
 from camera import Camera
@@ -21,9 +22,22 @@ def main():
     window = Window(WIDTH, HEIGHT, TITLE)
     camera = Camera2D(position=glm.vec3(0, 0, -5))
     spriteRenderer = SpriteRenderer()
-    tex = Texture("test.jpg")
-    tile_map = Map(texture=Texture(assets="maps\\Tiles.png"), tileWidth=8, tileHeight=8)
-    sprites = [Entity(position=glm.vec3(1, 1, 5), texture=tex)]
+    tex = Texture(assets="maps\\Tiles.png", filter=GL_NEAREST)
+    tile_map = Map(
+        texture=Texture(assets="maps\\Tiles.png", filter=GL_NEAREST),
+        tileWidth=8,
+        tileHeight=8,
+    )
+    sprites = [
+        Entity(
+            position=glm.vec3(1, 1, 5),
+            size=glm.vec2(512),
+            texture=tex,
+            texMapSize=tex.dim,
+            tileSize=(8, 8),
+            tileIndex=926,
+        )
+    ]
     spriteRenderer.process(sprites)
     while window.isNotClosed():
         camera.update(spriteRenderer.shader)

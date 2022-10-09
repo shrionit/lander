@@ -119,6 +119,7 @@ class VAO:
         normalized=GL_FALSE,
         instanceDataLength=0,
         offset=0,
+        divisor=1
     ):
         self.bind()
         vbo.bind()
@@ -131,7 +132,7 @@ class VAO:
             instanceDataLength,
             ctypes.c_void_p(offset),
         )
-        glVertexAttribDivisor(attrNum, 1)
+        glVertexAttribDivisor(attrNum, divisor)
         vbo.unbind()
         self.unbind()
 
