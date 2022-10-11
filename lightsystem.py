@@ -3,6 +3,7 @@ from OpenGL.GL import glDrawElements
 from OpenGL.raw.GL.VERSION.GL_1_0 import GL_TRIANGLES, GL_UNSIGNED_INT
 
 from Camera2D import Camera2D
+from core.framebuffer import Framebuffer
 from core.shader import Shader
 from core.texture import Texture
 from gmath import createTransformationMatrix
@@ -28,9 +29,9 @@ class Light:
 
 
 class LightSystem:
-    def __init__(self, quadVAO, tex: Texture, camera: Camera2D):
+    def __init__(self, quadVAO, fbo: Framebuffer, camera: Camera2D):
         self.vao = quadVAO
-        self.tex = tex
+        self.fbo = fbo
         self.shader = LightShader()
         self.camera = camera
         self.lights = []
@@ -45,19 +46,22 @@ class LightSystem:
     def start(self):
         self.shader.attach()
         self.vao.bind()
-        self.tex.bind()
+        self.fbo.bind()
+        Texture.bindTexture(self.fbo.textureID)
 
     def stop(self):
         self.vao.unbind()
-        self.tex.unbind()
+        Texture.bindTexture(0)
+        self.fbo.unbind()
         self.shader.detach()
 
     def render(self):
         self.start()
         self.update()
-        for light in self.lights:
-            self.shader.loadTransformationMatrix(light.getTransformationMatrix())
-            print("here")
+        for i in range(len(self.lights)):
+            self.shader.setUniformVec3(f"lights[{i}].position", glm.vec3(0).to_list())
+            self.shader.setUniformVec4(f"lights[{i}].color", self.lights[i].color.to_list())
+            self.shader.loadTransformationMatrix(self.lights[i].getTransformationMatrix())
             glDrawElements(GL_TRIANGLES, self.vao.indicesCount, GL_UNSIGNED_INT, None)
         self.stop()
 

@@ -36,17 +36,12 @@ class Scene:
         self.fx = PostProcessor(self.screen)
         self.camera = Camera2D(position=glm.vec3(0, 0, -5))
         # Light System
-        self.lightsystem = LightSystem(self.screen, Texture(textures="test.jpg"), self.camera)
-        self.lightsystem.addLight(glm.vec3(5, 5, 0), glm.vec4(1, 0, 0, 1))
+        self.lightsystem = LightSystem(self.screen, fbo=self.fbo, camera=self.camera)
+        self.lightsystem.addLight(glm.vec3(100, 100, 0), glm.vec4(1, 1, 1, 1))
         self.level = Level("level0.tmj", camera=self.camera)
 
     def setup(self):
         self.camera.update(self.shader)
-        vao = VAO()
-        vao.loadBufferToAttribLocation(0, VBO(RECT.vertices))
-        vao.loadBufferToAttribLocation(1, VBO(RECT.texCoords), ddim=2)
-        vao.loadIndices(IBO(RECT.indices))
-
 
     def render(self):
         glEnable(GL_DEPTH_TEST)
@@ -65,10 +60,10 @@ class Scene:
     def renderScene(self):
         self.fbo.bind()
         self.render()
-        self.fbo.unbind()
-        self.fx.applyEffect(EFFECTS.EDGE, self.fbo)
+        # self.fx.applyEffect(EFFECTS.SHARP, self.fbo)
         self.fx.applyEffect(EFFECTS.BLUR, self.fbo)
         self.lightsystem.render()
+        self.fbo.unbind()
         self.screenTexture.bind()
         self.sceneShader.attach()
         self.screen.bind()

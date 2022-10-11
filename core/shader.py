@@ -80,6 +80,10 @@ class Shader(ABC):
         loc = glGetUniformLocation(self.shaderProgram, location)
         eval(f"glUniform3{dtype}v")(loc, 1, value)
 
+    def setUniformVec4(self, location, value, dtype="f"):
+        loc = glGetUniformLocation(self.shaderProgram, location)
+        eval(f"glUniform4{dtype}v")(loc, 1, value)
+
     def putDataInUniformLocation(self, location, data, dtype="f"):
         loc = glGetUniformLocation(self.shaderProgram, location)
         if dtype == "f":
