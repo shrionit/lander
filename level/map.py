@@ -7,6 +7,7 @@ from core.shapes import RECT
 from core.storage import VAO, VBO, IBO
 from core.texture import Texture
 from core.utils import Dict, loadJSON
+from physics.collision import CollisionBoxGroup
 from sprite import Sprite, SpriteShader
 
 WORLD_BOUNDS = Dict()
@@ -86,6 +87,8 @@ class Map:
                         tileSize=(self.tileWidth, self.tileHeight),
                         tileIndex=level[i] - 1
                     )
+                    if i==129:
+                        print(level[i])
                     self.tilesTexOffsets.extend(sprite.getTexOffset())
                     self.tileTransforms.extend(sprite.getTransformationMatrix())
                     self.tiles.append(sprite)
@@ -119,4 +122,3 @@ class Map:
 
     def cleanup(self):
         del self.vboTransforms
-        # del self.vboTexCoords

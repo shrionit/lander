@@ -21,21 +21,11 @@ step = 0.001
 def main():
     # Creating Window
     window = Window(WIDTH, HEIGHT, TITLE)
-    camera = Camera2D(position=glm.vec3(0, 0, -5))
-    spriteRenderer = SpriteRenderer()
+
     scene = Scene(window)
-    sprites = [
-        Entity(
-            position=glm.vec3(1, 1, 5),
-            size=glm.vec2(512),
-            texture=Texture(assets="playerSheets\\idle sheet-Sheet.png")
-        )
-    ]
-    spriteRenderer.process(sprites)
+
     while window.isNotClosed():
-        camera.update(spriteRenderer.shader)
         scene.renderScene()
-        spriteRenderer.renderSprites()
         window.update()
     scene.cleanup()
     window.close()  # terminating the glfw window

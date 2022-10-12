@@ -19,7 +19,8 @@ void main() {
     float falloff = 2;
     Light light = lights[0];
     vec3 lightPos = vec3(mvp * vec4(light.position, 1.0));
-    float d = 1.0 / distance(lightPos, vec3(oPos, 0));
-    vec4 finalColor = (color * d);
+    float d = 1 / distance(lightPos, vec3(oPos, 0));
+    d = d*d*d*d;
+    vec4 finalColor = color * d;
     gl_FragColor = finalColor;
 }

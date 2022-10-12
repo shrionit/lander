@@ -33,6 +33,7 @@ class Sprite:
             rotate: float = 0,
             tex: Texture = None,
             shader: Shader = None,
+            loop: bool = False,
             elapsedFrame: int = 0,
             frameBuffer: int = 2,
             frameSize: int = 64,
@@ -46,29 +47,27 @@ class Sprite:
         self.size = size
         self.rotate = rotate
         self.tex = tex
-        self.loop = False
-        self.elapsedFrame = elapsedFrame
+        self.loop = loop
+        self.elapsedFrame = tileIndex
         self.frameBuffer = frameBuffer
         self.frameSize = frameSize
         self.frameCount = frameCount
-        self.texMapSize = texMapSize
+        if tex:
+            self.texMapSize = tex.dim
+        else:
+            self.texMapSize = texMapSize
         self.tileSize = tileSize
         self.tileIndex = tileIndex
         self.bounds = Dict()
         self.calculateBounds()
-        data = [
-            0.0, 1.0, 0.0, 1.0,
-            1.0, 0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 
-    
-            0.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 1.0, 1.0,
-            1.0, 0.0, 1.0, 0.0
-        ]
-        
+        self.texCoordVBO = VBO(
+            buffer_size=8,
+            draw_type=GL_STREAM_DRAW
+        )
+        self.texCoordVBO.update(self.getTexCoords())
         self.vao = VAO()
         self.vao.loadBufferToAttribLocation(0, VBO(RECT.CENTERED.vertices), ddim=3)
-        self.vao.loadBufferToAttribLocation(1, VBO(self.getTexCoords()), ddim=2)
+        self.vao.loadBufferToAttribLocation(1, self.texCoordVBO, ddim=2)
         self.vao.loadIndices(IBO(RECT.CENTERED.indices))
         self.vao.unbind()
 
@@ -86,6 +85,15 @@ class Sprite:
 
     def getTransformationMatrix(self):
         return createTransformationMatrix(self.pos, glm.vec3(0, 0, self.rotate), glm.vec3(self.size, 0))
+
+    def setTileIndex(self, index):
+        self.tileIndex = index
+
+    def setTexture(self, tex, tileSize):
+        self.tex = tex
+        self.texMapSize = tex.dim
+        self.tileSize = tileSize
+        # self.tileIndex = 0
 
     def getTexCoords(self):
         return getTexCoordsFromIndex(
@@ -105,6 +113,12 @@ class Sprite:
         shader = shader or self.shader
         if shader is not None:
             shader.loadTransformationMatrix(self.getTransformationMatrix())
+        self.texCoordVBO.update(self.getTexCoords())
+        self.elapsedFrame += 1
+        if self.elapsedFrame > 85:
+            self.tileIndex += 1
+            self.tileIndex %= self.frameCount
+        self.elapsedFrame %= 100
 
     @abstractmethod
     def beforeRender(self):
@@ -134,6 +148,9 @@ class Sprite:
         self.stop()
         self.afterRender()
 
+    def cleanup(self):
+        del self.texCoordVBO
+
 
 class SpriteRenderer:
 
@@ -151,3 +168,7 @@ class SpriteRenderer:
             sprite.update(shader)
             sprite.render()
         shader.detach()
+
+    def cleanup(self):
+        for sprite in self.sprites:
+            sprite.cleanup()

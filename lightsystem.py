@@ -4,6 +4,7 @@ from OpenGL.raw.GL.VERSION.GL_1_0 import GL_TRIANGLES, GL_UNSIGNED_INT
 
 from Camera2D import Camera2D
 from core.framebuffer import Framebuffer
+from core.input import mouse
 from core.shader import Shader
 from core.texture import Texture
 from gmath import createTransformationMatrix
@@ -26,6 +27,9 @@ class Light:
 
     def getTransformationMatrix(self):
         return createTransformationMatrix(self.pos, glm.vec3(0), glm.vec3(1))
+
+    def setPos(self, pos):
+        self.pos = pos
 
 
 class LightSystem:
@@ -59,7 +63,8 @@ class LightSystem:
         self.start()
         self.update()
         for i in range(len(self.lights)):
-            self.shader.setUniformVec3(f"lights[{i}].position", glm.vec3(0).to_list())
+            self.lights[i].setPos(glm.vec3(mouse.x, mouse.y, 0))
+            self.shader.setUniformVec3(f"lights[{i}].position", self.lights[i].pos.to_list())
             self.shader.setUniformVec4(f"lights[{i}].color", self.lights[i].color.to_list())
             self.shader.loadTransformationMatrix(self.lights[i].getTransformationMatrix())
             glDrawElements(GL_TRIANGLES, self.vao.indicesCount, GL_UNSIGNED_INT, None)

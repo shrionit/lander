@@ -28,8 +28,6 @@ class BufferObject:
     def cleanup():
         glDeleteBuffers(len(BufferObject.BOS), BufferObject.BOS)
 
-    def __del__(self):
-        glDeleteBuffers(1, [self.buffer])
 
 
 class VBO(BufferObject):

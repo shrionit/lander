@@ -1,9 +1,11 @@
+import glm
 from OpenGL.raw.GL.VERSION.GL_1_0 import GL_NEAREST
 
 from Camera2D import Camera2D
 from core.shader import Shader
 from core.texture import Texture
-from core.utils import loadJSON, Dict
+from core.utils import loadJSON, Dict, getCollisionBoxes
+from physics.collision import CollisionBox, CollisionBoxGroup
 from .map import Map
 
 
@@ -13,6 +15,7 @@ class Level:
         [tilemap] = lvl["tilesets"]
         texFile = tilemap["image"].split("/")[-1]
         self.texMap = Texture(assets="maps\\" + texFile, filter=GL_NEAREST)
+        self.collisionBoxGroups = []
         self.camera = camera
         lvl = lvl["layers"]
         self.mapshader = Shader(frag="mapShader", vert="mapShader")
@@ -26,11 +29,11 @@ class Level:
                         level=layer["data"],
                         shader=self.mapshader,
                         tileWidth=tilemap["tilewidth"],
-                        tileHeight=tilemap["tileheight"],
+                        tileHeight=tilemap["tileheight"]
                     ),
                 }
             )
-        print(self.layers)
+        self.collisionBoxGroups = getCollisionBoxes(tilemap["tiles"])
 
     def draw(self):
         self.camera.update(self.mapshader)

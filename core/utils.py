@@ -1,6 +1,10 @@
 import glfw
 import json, os
+
+import glm
 import numpy as np
+
+from physics.collision import CollisionBox, CollisionBoxGroup
 
 
 class Dict(dict):
@@ -58,7 +62,7 @@ def getTexOffsetFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index)
     x = index % n_tile
     x *= tileWidth
     y *= tileHeight
-    return x / imageWidth, y / imageHeight
+    return np.round(x / imageWidth, 8), np.round(y / imageHeight, 8)
 
 
 def getTexCoordsFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index):
@@ -81,3 +85,16 @@ def getTexCoordsFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index)
         right, top,
         left, top
     ]
+
+
+def getCollisionBoxes(tiles):
+    out = Dict()
+    for tile in tiles:
+        collision_boxes = []
+        for colbox in tile['objectgroup']['objects']:
+            colbox = Dict(colbox)
+            collision_boxes.append(
+                CollisionBox(glm.vec2(colbox.x, colbox.y), glm.vec2(colbox.width, colbox.height))
+            )
+        out[tile['id']] = CollisionBoxGroup(collision_boxes)
+    return out

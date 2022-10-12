@@ -17,6 +17,7 @@ from entity import Entity
 from level.level import Level
 from lightsystem import LightSystem
 from particle.particlesystem import ParticleSystem, Particle, ParticleShader
+from sprite import SpriteRenderer
 
 
 class Scene:
@@ -40,10 +41,28 @@ class Scene:
         self.lightsystem.addLight(glm.vec3(100, 100, 0), glm.vec4(1, 1, 1, 1))
         self.level = Level("level0.tmj", camera=self.camera)
 
-    def setup(self):
+        #sprite renderer
+        self.spriteRenderer = SpriteRenderer()
+
+        #player
+        self.player = Entity(
+            position=glm.vec3(1, 1, 5),
+            size=glm.vec2(128),
+            texture=Texture(assets="playerSheets\\ChikBoy_idle.png", filter=GL_NEAREST),
+            tileSize=(32, 32),
+            tileIndex=0,
+            frameCount=6
+        )
+        self.player.setLevel(self.level)
+        self.camera.setTargetPlayer(self.player)
+        self.spriteRenderer.process([self.player])
+
+    def update(self):
         self.camera.update(self.shader)
+        self.camera.update(self.spriteRenderer.shader)
 
     def render(self):
+        self.update()
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
         glEnable(GL_BLEND)
@@ -53,16 +72,15 @@ class Scene:
 
         # Draw
         self.level.draw()
+        self.spriteRenderer.renderSprites()
 
         glDisable(GL_DEPTH_TEST)
         glDisable(GL_CULL_FACE)
 
     def renderScene(self):
         self.fbo.bind()
+        self.player.render()
         self.render()
-        # self.fx.applyEffect(EFFECTS.SHARP, self.fbo)
-        self.fx.applyEffect(EFFECTS.BLUR, self.fbo)
-        self.lightsystem.render()
         self.fbo.unbind()
         self.screenTexture.bind()
         self.sceneShader.attach()
@@ -73,6 +91,7 @@ class Scene:
         self.screenTexture.unbind()
 
     def cleanup(self):
+        self.spriteRenderer.cleanup()
         self.level.cleanup()
         BufferObject.cleanup()
         Framebuffer.cleanUP()

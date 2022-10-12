@@ -38,6 +38,7 @@ ZOOM = 45.0
 class Camera:
     """An abstract camera class that processes input and calculates the corresponding Euler Angles,
     Vectors and Matrices for use in OpenGL """
+
     def __init__(self, window, *args, **kwargs):
         if len(args) == 4 and len(kwargs) == 0:
             pos, up, yaw, pitch = args
@@ -89,7 +90,6 @@ class Camera:
         # perspective = glm.perspective(glm.radians(self.Zoom), self.window.WIDTH / self.window.HEIGHT, 0.1, 100.0)
         ortho = glm.ortho(0, 64 * 30, 64 * 20, 0, 0.0, 1000)
         return ortho
-
 
     def update(self, shader):
         shader.attach()
