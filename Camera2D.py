@@ -17,7 +17,7 @@ from OpenGL.GL import *
 from core.display import Window
 from core.input import is_key_pressed, mouse
 from core.utils import Dict
-from level.map import WORLD_BOUNDS
+from constants import WORLD_BOUNDS
 
 YAW = -90.0
 PITCH = 0.0

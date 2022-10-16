@@ -47,11 +47,11 @@ class Scene:
         #player
         self.player = Entity(
             position=glm.vec3(1, 1, 5),
-            size=glm.vec2(128),
-            texture=Texture(assets="playerSheets\\ChikBoy_idle.png", filter=GL_NEAREST),
-            tileSize=(32, 32),
+            size=glm.vec2(64),
+            texture=Texture(assets="playerSheets\\Idle.png", filter=GL_NEAREST),
+            tileSize=(8, 8),
             tileIndex=0,
-            frameCount=6
+            frameCount=4
         )
         self.player.setLevel(self.level)
         self.camera.setTargetPlayer(self.player)

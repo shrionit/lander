@@ -60,10 +60,10 @@ class Window:
         glfw.set_mouse_button_callback(self.window, input.mouse_button_handler)
 
     def update(self, clears=GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT):
+        glfw.swap_buffers(self.window)
         currTime = glfw.get_time()
         Window.DELTA_TIME = currTime - self._prevTime
         self._prevTime = currTime
-        glfw.swap_buffers(self.window)
         glfw.poll_events()
         glClear(clears)
 

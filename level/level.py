@@ -6,7 +6,7 @@ from core.shader import Shader
 from core.texture import Texture
 from core.utils import loadJSON, Dict, getCollisionBoxes
 from physics.collision import CollisionBox, CollisionBoxGroup
-from .map import Map
+from .map import Map, CollisionMap
 
 
 class Level:
@@ -15,7 +15,6 @@ class Level:
         [tilemap] = lvl["tilesets"]
         texFile = tilemap["image"].split("/")[-1]
         self.texMap = Texture(assets="maps\\" + texFile, filter=GL_NEAREST)
-        self.collisionBoxGroups = []
         self.camera = camera
         lvl = lvl["layers"]
         self.mapshader = Shader(frag="mapShader", vert="mapShader")
@@ -33,7 +32,10 @@ class Level:
                     ),
                 }
             )
-        self.collisionBoxGroups = getCollisionBoxes(tilemap["tiles"])
+        self.collisionMap = CollisionMap(getCollisionBoxes(tilemap["tiles"]), self.layers[tilemap['firstgid']].map)
+
+    def getCollisionMap(self):
+        return self.collisionMap
 
     def draw(self):
         self.camera.update(self.mapshader)

@@ -58,16 +58,18 @@ class Sprite:
             self.texMapSize = texMapSize
         self.tileSize = tileSize
         self.tileIndex = tileIndex
+        self.animationSpeed = 1
         self.bounds = Dict()
         self.calculateBounds()
         self.texCoordVBO = VBO(
-            buffer_size=8,
+            buffer_size=16,
             draw_type=GL_STREAM_DRAW
         )
-        self.texCoordVBO.update(self.getTexCoords())
+        self.texCoordVBO.update([*self.getTexCoords(), *self.getTexCoords(self.tileIndex+1)])
         self.vao = VAO()
         self.vao.loadBufferToAttribLocation(0, VBO(RECT.CENTERED.vertices), ddim=3)
-        self.vao.loadBufferToAttribLocation(1, self.texCoordVBO, ddim=2)
+        self.vao.loadBufferToAttribLocation(1, self.texCoordVBO, ddim=2, offset=0)
+        self.vao.loadBufferToAttribLocation(2, self.texCoordVBO, ddim=2, offset=8*4)
         self.vao.loadIndices(IBO(RECT.CENTERED.indices))
         self.vao.unbind()
 
@@ -95,11 +97,13 @@ class Sprite:
         self.tileSize = tileSize
         # self.tileIndex = 0
 
-    def getTexCoords(self):
+    def getTexCoords(self, tileIndex=None):
+        tileIndex = tileIndex or self.tileIndex
+        tileIndex %= self.frameCount
         return getTexCoordsFromIndex(
             *self.texMapSize,
             *self.tileSize,
-            self.tileIndex
+            tileIndex
         )
 
     def getTexOffset(self):
@@ -114,11 +118,10 @@ class Sprite:
         if shader is not None:
             shader.loadTransformationMatrix(self.getTransformationMatrix())
         self.texCoordVBO.update(self.getTexCoords())
-        self.elapsedFrame += 1
-        if self.elapsedFrame > 85:
-            self.tileIndex += 1
-            self.tileIndex %= self.frameCount
-        self.elapsedFrame %= 100
+        self.elapsedFrame += Window.get_deltatime() * self.animationSpeed * 10
+        self.tileIndex = glm.floor(self.elapsedFrame)
+        self.tileIndex %= self.frameCount
+        self.elapsedFrame %= self.animationSpeed * self.frameCount
 
     @abstractmethod
     def beforeRender(self):

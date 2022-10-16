@@ -10,7 +10,7 @@ from physics.collision import CollisionBox, CollisionBoxGroup
 class Dict(dict):
     """
     Dict (dict_object):
-        Makes a dictionay object act as javascript object
+        Makes a dictionary object act as javascript object
 
     Example:
         person = Dict({
@@ -91,10 +91,11 @@ def getCollisionBoxes(tiles):
     out = Dict()
     for tile in tiles:
         collision_boxes = []
+        tileId = tile['id']
         for colbox in tile['objectgroup']['objects']:
             colbox = Dict(colbox)
             collision_boxes.append(
-                CollisionBox(glm.vec2(colbox.x, colbox.y), glm.vec2(colbox.width, colbox.height))
+                Dict(x=colbox.x, y=colbox.y, width=colbox.width, height=colbox.height)
             )
-        out[tile['id']] = CollisionBoxGroup(collision_boxes)
+        out[tileId] = collision_boxes
     return out

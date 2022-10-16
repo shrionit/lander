@@ -5,28 +5,29 @@ from core.display import Window
 from core.input import KEYS, is_key_pressed
 from core.shader import Shader
 from core.texture import Texture
-from level.map import WORLD_BOUNDS
+from core.utils import Dict
+from constants import WORLD_BOUNDS
 from sprite import Sprite
 
 
 class Entity(Sprite):
     def __init__(
-            self,
-            position: glm.vec3 = glm.vec3(0),
-            rotation: float = 0,
-            size: glm.vec2 = glm.vec2(64),
-            texture: Texture = None,
-            shader: Shader = None,
-            loop: bool = False,
-            elapsedFrame: int = 0,
-            frameBuffer: int = 2,
-            frameSize: int = 64,
-            frameCount: int = 1,
-            static: bool = False,
-            noPhysics: bool = False,
-            texMapSize=(Window.WIDTH, Window.HEIGHT),
-            tileSize=(64, 64),
-            tileIndex=0
+        self,
+        position: glm.vec3 = glm.vec3(0),
+        rotation: float = 0,
+        size: glm.vec2 = glm.vec2(64),
+        texture: Texture = None,
+        shader: Shader = None,
+        loop: bool = False,
+        elapsedFrame: int = 0,
+        frameBuffer: int = 2,
+        frameSize: int = 64,
+        frameCount: int = 1,
+        static: bool = False,
+        noPhysics: bool = False,
+        texMapSize=(Window.WIDTH, Window.HEIGHT),
+        tileSize=(64, 64),
+        tileIndex=0,
     ) -> None:
         super().__init__(
             pos=position,
@@ -41,17 +42,29 @@ class Entity(Sprite):
             frameCount=frameCount,
             texMapSize=texMapSize,
             tileSize=tileSize,
-            tileIndex=tileIndex
+            tileIndex=tileIndex,
         )
-        self.moveSpeed = 100
+        self.direction = 1
+        self.moveSpeed = 50
         self.static = static
         self.noPhysics = noPhysics
-        self.jumpForce = -1
+        self.jumpHeight = -WORLD_BOUNDS.BOTTOM * 0.45
         self.velocity = glm.vec3(0, 0, 0)
+        self.pressedTime = 0
         self.gravity = 2.9
         self.acceleration = glm.vec3(0, self.gravity, 0)
-        self.idleSprite = Texture(assets="playerSheets\\ChikBoy_idle.png", filter=GL_NEAREST)
-        self.runSprite = Texture(assets="playerSheets\\ChikBoy_run.png", filter=GL_NEAREST)
+        self.idleSprite = Dict(
+            right=Texture(assets="playerSheets\\IdleRight.png", filter=GL_NEAREST),
+            left=Texture(assets="playerSheets\\IdleLeft.png", filter=GL_NEAREST),
+        )
+        self.runSprite = Dict(
+            right=Texture(assets="playerSheets\\RunRight.png", filter=GL_NEAREST),
+            left=Texture(assets="playerSheets\\RunLeft.png", filter=GL_NEAREST),
+        )
+        self.jumpSprite = Dict(
+            right=Texture(assets="playerSheets\\JumpRight.png", filter=GL_NEAREST),
+            left=Texture(assets="playerSheets\\JumpLeft.png", filter=GL_NEAREST),
+        )
         self.level = None
 
     def setLevel(self, level):
@@ -62,33 +75,54 @@ class Entity(Sprite):
         self.calculateBounds()
 
     def checkCollision(self):
-        if not self.level: return
-        # TODO: Collision
+        if not self.level:
+            return
+        out = False
+        for group in self.level.collisionMap.getCollisionBoxGroups():
+            out = out or group.collidesWith(self)
+        return out
 
     def applyPhysics(self):
         self.updatePos()
-        self.checkCollision()
         topBound = self.bounds.top + self.velocity.y > WORLD_BOUNDS.TOP
         bottomBound = self.bounds.bottom + self.velocity.y < WORLD_BOUNDS.BOTTOM
-        if bottomBound:
-            if not topBound:
+        if not self.checkCollision():
+            if bottomBound:
+                if not topBound:
+                    self.velocity.y = 0
+                self.velocity += self.acceleration * Window.get_deltatime()
+            else:
                 self.velocity.y = 0
-            self.velocity += self.acceleration * Window.get_deltatime()
-        else:
-            self.velocity.y = 0
 
     def handleMovement(self):
-        if is_key_pressed(KEYS.SPACE) and self.velocity.y == 0:
-            self.velocity.y = self.jumpForce
-        if is_key_pressed(KEYS.A) and self.bounds.left - self.velocity.x > WORLD_BOUNDS.LEFT:
-            self.setTexture(self.runSprite, (-32, 32))
+        if is_key_pressed(KEYS.SPACE) and self.bounds.bottom > self.pos.y - 200:
+            self.setTexture(
+                self.jumpSprite.left if self.direction == -1 else self.jumpSprite.right,
+                self.tileSize,
+            )
+            self.velocity.y -= Window.get_deltatime() * 10
+        if (
+            is_key_pressed(KEYS.A)
+            and self.bounds.left - self.velocity.x > WORLD_BOUNDS.LEFT
+        ):
+            self.direction = -1
+            self.setTexture(self.runSprite.left, self.tileSize)
+            self.elapsedFrame += Window.get_deltatime() * self.animationSpeed * 5.5
             self.velocity.x = -self.moveSpeed * Window.get_deltatime()
-        elif is_key_pressed(KEYS.D) and self.bounds.right + self.velocity.x < WORLD_BOUNDS.RIGHT:
-            self.setTexture(self.runSprite, (32, 32))
+        elif (
+            is_key_pressed(KEYS.D)
+            and self.bounds.right + self.velocity.x < WORLD_BOUNDS.RIGHT
+        ):
+            self.direction = 1
+            self.setTexture(self.runSprite.right, self.tileSize)
+            self.elapsedFrame += Window.get_deltatime() * self.animationSpeed * 5.5
             self.velocity.x = self.moveSpeed * Window.get_deltatime()
         else:
             self.velocity.x = 0
-            self.setTexture(self.idleSprite, (32, 32))
+            self.setTexture(
+                self.idleSprite.left if self.direction == -1 else self.idleSprite.right,
+                self.tileSize,
+            )
         self.updatePos()
 
     def beforeRender(self):

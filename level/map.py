@@ -2,24 +2,18 @@ import numpy as np
 import glm
 from OpenGL.GL import *
 
+from constants import WORLD_TILE_SIZE, WORLD_BOUNDS
 from core.shader import Shader
 from core.shapes import RECT
 from core.storage import VAO, VBO, IBO
 from core.texture import Texture
-from core.utils import Dict, loadJSON
-from physics.collision import CollisionBoxGroup
-from sprite import Sprite, SpriteShader
-
-WORLD_BOUNDS = Dict()
-WORLD_BOUNDS.LEFT = 0
-WORLD_BOUNDS.RIGHT = 64 * 30
-WORLD_BOUNDS.TOP = 0
-WORLD_BOUNDS.BOTTOM = 64 * 20
+from physics.collision import CollisionBox, CollisionBoxGroup
+from sprite import Sprite
 
 
 class Map:
 
-    def __init__(self, texture: Texture, level = None, shader: Shader = None, tileWidth: int = 64, tileHeight: int = 64):
+    def __init__(self, texture: Texture, level = None, shader: Shader = None, tileWidth: int = WORLD_TILE_SIZE, tileHeight: int = WORLD_TILE_SIZE):
         self.texture = texture
         self.tileWidth = tileWidth
         self.tileHeight = tileHeight
@@ -76,13 +70,13 @@ class Map:
         self.tiles = []
         self.tilesTexOffsets = []
         self.tileTransforms = []
-        for y in range(WORLD_BOUNDS.BOTTOM // 64):
-            for x in range(WORLD_BOUNDS.RIGHT // 64):
-                i = x + y * WORLD_BOUNDS.RIGHT // 64
+        for y in range(WORLD_BOUNDS.BOTTOM // WORLD_TILE_SIZE):
+            for x in range(WORLD_BOUNDS.RIGHT // WORLD_TILE_SIZE):
+                i = x + y * WORLD_BOUNDS.RIGHT // WORLD_TILE_SIZE
                 if level[i] > 0:
                     sprite = Sprite(
-                        pos=glm.vec3(x * 64, y * 64, 5.0),
-                        size=glm.vec2(64),
+                        pos=glm.vec3(x * WORLD_TILE_SIZE, y * WORLD_TILE_SIZE, 5.0),
+                        size=glm.vec2(WORLD_TILE_SIZE),
                         texMapSize=self.texture.dim,
                         tileSize=(self.tileWidth, self.tileHeight),
                         tileIndex=level[i] - 1
@@ -122,3 +116,27 @@ class Map:
 
     def cleanup(self):
         del self.vboTransforms
+
+class CollisionMap:
+
+    def __init__(self, collisionsBoxes, groundMap):
+        self.collisionBoxGroups = []
+        for tile in groundMap.tiles:
+            boxes = collisionsBoxes.get(tile.tileIndex)
+            if boxes is None: continue
+            coll_boxes = []
+            for box in boxes:
+                factor = glm.vec2(
+                    tile.size.x / tile.tileSize[0],
+                    tile.size.y / tile.tileSize[1]
+                )
+                coll_boxes.append(
+                    CollisionBox(pos=tile.pos, size=glm.vec2(box.width*factor.x, box.height*factor.y))
+                )
+            self.collisionBoxGroups.append(
+                CollisionBoxGroup(coll_boxes)
+            )
+
+    def getCollisionBoxGroups(self):
+        return self.collisionBoxGroups
+

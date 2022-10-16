@@ -2,19 +2,21 @@ class CollisionBox:
     def __init__(self, pos, size):
         self.pos = pos
         self.size = size
-        self.left = pos.x - size.x / 2
-        self.right = pos.x + size.x / 2
-        self.top = pos.y - size.y / 2
-        self.bottom = pos.y + size.y / 2
+        self.left = pos.x
+        self.right = pos.x + size.x
+        self.top = pos.y
+        self.bottom = pos.y + size.y
 
     def collidesWith(self, box):
-        hc = False
-        vc = False
-        if box.left < self.right or box.right > self.left:
-            hc = True
-        if box.top < self.bottom or box.bottom > self.top:
-            vc = True
-        return hc and vc
+        vy = box.velocity.y
+        vx = box.velocity.x
+        collided = False
+        if self.left <= box.bounds.right + vx and self.right >= box.bounds.left - vx:
+            if self.top < box.bounds.bottom + vy:# and self.left <= box.bounds.right + vx and self.right >= box.bounds.left - vx and self.bottom >= box.bounds.top + vy:
+                box.pos.y = self.top - box.size.y
+                box.velocity.y = 0
+                collided = True
+        return collided
 
 
 class CollisionBoxGroup:
@@ -22,9 +24,9 @@ class CollisionBoxGroup:
         self.boxes = boxes
 
     def collidesWith(self, box):
-        out = False
+        out = None
         for b in self.boxes:
-            if b.collidesWith(box):
-                out = True
+            out = b.collidesWith(box)
+            if out:
                 break
         return out
