@@ -1,5 +1,13 @@
+from math import fabs
+from core.utils import Dict
 class CollisionBox:
     def __init__(self, pos, size):
+        self.dir = Dict(
+            left = False,
+            right = False,
+            top = False,
+            bottom = False
+        )
         self.pos = pos
         self.size = size
         self.left = pos.x
@@ -10,13 +18,18 @@ class CollisionBox:
     def collidesWith(self, box):
         vy = box.velocity.y
         vx = box.velocity.x
-        collided = False
-        if self.left <= box.bounds.right + vx and self.right >= box.bounds.left - vx:
-            if self.top < box.bounds.bottom + vy:# and self.left <= box.bounds.right + vx and self.right >= box.bounds.left - vx and self.bottom >= box.bounds.top + vy:
-                box.pos.y = self.top - box.size.y
-                box.velocity.y = 0
-                collided = True
-        return collided
+        self.dir.left = self.left < box.bounds.right + vx
+        self.dir.right = self.right > box.bounds.left - vx
+        self.dir.top = self.top < box.bounds.bottom + vy
+        self.dir.bottom = self.bottom > box.bounds.top - vy
+        xcoll = self.dir.left and self.dir.right
+        ycoll = self.dir.top and self.dir.bottom
+        if xcoll and self.dir.top:
+            box.velocity.y = 0
+        if xcoll and self.dir.bottom:
+            box.velocity.y *= -1
+        return xcoll and ycoll
+
 
 
 class CollisionBoxGroup:

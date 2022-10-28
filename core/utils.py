@@ -4,8 +4,6 @@ import json, os
 import glm
 import numpy as np
 
-from physics.collision import CollisionBox, CollisionBoxGroup
-
 
 class Dict(dict):
     """
@@ -86,16 +84,3 @@ def getTexCoordsFromIndex(imageWidth, imageHeight, tileWidth, tileHeight, index)
         left, top
     ]
 
-
-def getCollisionBoxes(tiles):
-    out = Dict()
-    for tile in tiles:
-        collision_boxes = []
-        tileId = tile['id']
-        for colbox in tile['objectgroup']['objects']:
-            colbox = Dict(colbox)
-            collision_boxes.append(
-                Dict(x=colbox.x, y=colbox.y, width=colbox.width, height=colbox.height)
-            )
-        out[tileId] = collision_boxes
-    return out

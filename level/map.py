@@ -7,6 +7,7 @@ from core.shader import Shader
 from core.shapes import RECT
 from core.storage import VAO, VBO, IBO
 from core.texture import Texture
+from core.utils import Dict
 from physics.collision import CollisionBox, CollisionBoxGroup
 from sprite import Sprite
 
@@ -81,10 +82,9 @@ class Map:
                         tileSize=(self.tileWidth, self.tileHeight),
                         tileIndex=level[i] - 1
                     )
-                    if i==129:
-                        print(level[i])
                     self.tilesTexOffsets.extend(sprite.getTexOffset())
                     self.tileTransforms.extend(sprite.getTransformationMatrix())
+                    print(f"{x}-{y}", sprite)
                     self.tiles.append(sprite)
         return self.tiles
 
@@ -120,7 +120,7 @@ class Map:
 class CollisionMap:
 
     def __init__(self, collisionsBoxes, groundMap):
-        self.collisionBoxGroups = []
+        self.collisionBoxGroups = Dict()
         for tile in groundMap.tiles:
             boxes = collisionsBoxes.get(tile.tileIndex)
             if boxes is None: continue
@@ -130,12 +130,11 @@ class CollisionMap:
                     tile.size.x / tile.tileSize[0],
                     tile.size.y / tile.tileSize[1]
                 )
-                coll_boxes.append(
-                    CollisionBox(pos=tile.pos, size=glm.vec2(box.width*factor.x, box.height*factor.y))
-                )
-            self.collisionBoxGroups.append(
-                CollisionBoxGroup(coll_boxes)
-            )
+                coll_box = CollisionBox(pos=tile.pos, size=glm.vec2(box.width*factor.x, box.height*factor.y))
+                coll_boxes.append(coll_box)
+            x = int(tile.pos.x // WORLD_TILE_SIZE)
+            y = int(tile.pos.y // WORLD_TILE_SIZE)
+            self.collisionBoxGroups[f"{x}-{y}"] = CollisionBoxGroup(coll_boxes)
 
     def getCollisionBoxGroups(self):
         return self.collisionBoxGroups

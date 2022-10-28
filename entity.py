@@ -6,7 +6,7 @@ from core.input import KEYS, is_key_pressed
 from core.shader import Shader
 from core.texture import Texture
 from core.utils import Dict
-from constants import WORLD_BOUNDS
+from constants import WORLD_BOUNDS, WORLD_TILE_SIZE
 from sprite import Sprite
 
 
@@ -44,6 +44,7 @@ class Entity(Sprite):
             tileSize=tileSize,
             tileIndex=tileIndex,
         )
+        self.currentTile = Dict(x=0,y=0)
         self.direction = 1
         self.moveSpeed = 50
         self.static = static
@@ -70,16 +71,26 @@ class Entity(Sprite):
     def setLevel(self, level):
         self.level = level
 
+    def getCurrentTile(self):
+        return f"{self.currentTile.x}-{self.currentTile.y}"
+
     def updatePos(self):
         self.pos += self.velocity
         self.calculateBounds()
+        self.currentTile.x = int(self.pos.x // WORLD_TILE_SIZE)
+        self.currentTile.y = int(self.pos.y // WORLD_TILE_SIZE)
 
     def checkCollision(self):
         if not self.level:
             return
         out = False
-        for group in self.level.collisionMap.getCollisionBoxGroups():
-            out = out or group.collidesWith(self)
+        self.currentTile.y += 1
+        group = self.level.collisionMap.getCollisionBoxGroups().get(self.getCurrentTile())
+        if group is None: return False
+        out = group.collidesWith(self)
+        # print(self.level.collisionMap.getCollisionBoxGroups().get(self.currentTile))
+        # for group in self.level.collisionMap.getCollisionBoxGroups().values():
+        #     out = out or group.collidesWith(self)
         return out
 
     def applyPhysics(self):
