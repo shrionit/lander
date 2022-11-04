@@ -27,10 +27,8 @@ class CollisionBox:
         xcoll = self.dir.left and self.dir.right
         ycoll = self.dir.top and self.dir.bottom
         if xcoll and self.dir.top:
-            print("from top")
             box.velocity.y = 0
         if xcoll and self.dir.bottom:
-            print("from bottom")
             box.velocity.y *= -1
         return self if xcoll and ycoll else False
 

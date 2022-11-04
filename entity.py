@@ -51,7 +51,7 @@ class Entity(Sprite):
         self.collidedPlateform = Dict(top=0)
         self.static = static
         self.noPhysics = noPhysics
-        self.jumpHeight = 75
+        self.jumpHeight = 100
         self.velocity = glm.vec3(0, 0, 0)
         self.pressedTime = 0
         self.gravity = 2.9
@@ -83,15 +83,12 @@ class Entity(Sprite):
         self.currentTile.y = int(self.pos.y // WORLD_TILE_SIZE)
         if self.currentTile.x < 0: self.currentTile.x = 0
 
-
     def checkCollision(self):
         if not self.level:
             return
         out = False
         self.currentTile.y += 1
-        print(f"currentTile: {self.currentTile}")
         group = self.level.collisionMap.getCollisionBoxGroups().get(self.getCurrentTile())
-        print(f"group: {group}")
         if group is None: return False
         out = group.collidesWith(self)
         # print(self.level.collisionMap.getCollisionBoxGroups().get(self.currentTile))
@@ -116,7 +113,8 @@ class Entity(Sprite):
             self.collidedPlateform = collided
 
     def handleMovement(self):
-        if is_key_pressed(KEYS.SPACE) and self.touchedGround and self.bounds.bottom > self.collidedPlateform.top - self.jumpHeight:
+        if is_key_pressed(
+                KEYS.SPACE) and self.touchedGround and self.bounds.bottom > self.collidedPlateform.top - self.jumpHeight:
             self.setTexture(
                 self.jumpSprite.left if self.direction == -1 else self.jumpSprite.right,
                 self.tileSize,
