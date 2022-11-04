@@ -81,13 +81,17 @@ class Entity(Sprite):
         self.calculateBounds()
         self.currentTile.x = int(self.pos.x // WORLD_TILE_SIZE)
         self.currentTile.y = int(self.pos.y // WORLD_TILE_SIZE)
+        if self.currentTile.x < 0: self.currentTile.x = 0
+
 
     def checkCollision(self):
         if not self.level:
             return
         out = False
         self.currentTile.y += 1
+        print(f"currentTile: {self.currentTile}")
         group = self.level.collisionMap.getCollisionBoxGroups().get(self.getCurrentTile())
+        print(f"group: {group}")
         if group is None: return False
         out = group.collidesWith(self)
         # print(self.level.collisionMap.getCollisionBoxGroups().get(self.currentTile))
