@@ -1,12 +1,14 @@
 from math import fabs
 from core.utils import Dict
+
+
 class CollisionBox:
     def __init__(self, pos, size):
         self.dir = Dict(
-            left = False,
-            right = False,
-            top = False,
-            bottom = False
+            left=False,
+            right=False,
+            top=False,
+            bottom=False
         )
         self.pos = pos
         self.size = size
@@ -25,11 +27,12 @@ class CollisionBox:
         xcoll = self.dir.left and self.dir.right
         ycoll = self.dir.top and self.dir.bottom
         if xcoll and self.dir.top:
+            print("from top")
             box.velocity.y = 0
         if xcoll and self.dir.bottom:
+            print("from bottom")
             box.velocity.y *= -1
-        return xcoll and ycoll
-
+        return self if xcoll and ycoll else False
 
 
 class CollisionBoxGroup:
